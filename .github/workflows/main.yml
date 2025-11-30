@@ -173,4 +173,4 @@ jobs:
       uses: actions/upload-artifact@v4.0.0
       with:
         name: ${{ matrix.upload_name }}
-        path: /home/runner/${{ matrix.build_path }}/bin/packages/${{ matrix.platform }}/ps3netsrv_feed/
+        path: /home/runner/${{ matrix.build_path }}/bin/packages/${{ matrix.platform }}/**/*.ipk
