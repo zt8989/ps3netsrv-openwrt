@@ -118,32 +118,17 @@ jobs:
         run: |
           rm -rf package/${PACKAGE_NAME}
           src_dir="${{ github.workspace }}"
-          if [ -f "$src_dir/Makefile" ]; then
-            pkg_src="$src_dir"
-          else
-            pkg_src=$(find "$src_dir" -maxdepth 1 -type d -name "${PACKAGE_NAME}" -o -name "luci-app-*${PACKAGE_NAME#luci-app-}*" | head -n 1)
-            if [ -z "$pkg_src" ]; then
-              echo "::error::Could not locate package directory for ${PACKAGE_NAME}"
-              exit 1
-            fi
-          fi
-          mkdir -p ./package/${PACKAGE_NAME}
-          rsync -a --delete "$pkg_src"/ ./package/${PACKAGE_NAME}/
-          translation_pkg=${PACKAGE_NAME#luci-app-}
-          mkdir -p ./bin/packages
-          find ./bin/packages -type f -name "${PACKAGE_NAME}*.ipk" -delete
-          find ./bin/packages -type f -name "luci-i18n-${translation_pkg}-*.ipk" -delete
-          {
-            echo "CONFIG_PACKAGE_${PACKAGE_NAME}=m"
-            echo "CONFIG_PACKAGE_luci-i18n-${translation_pkg}-zh-cn=m"
-            echo "CONFIG_LUCI_LANG_zh_Hans=y"
-          } > .config
+          echo "src-link ps3netsrv_feed ${src_dir}" >> feeds.conf.default
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
           make defconfig
 
       # 步骤 6: 编译软件包
       - name: Compile the package
         working-directory: ${{ env.SDK_DIR }}
         run: |
+          make package/ps3netsrv/download
+          make package/ps3netsrv/prepare
           make package/${PACKAGE_NAME}/compile V=s -j$(($(nproc) + 1))
 
       # 步骤 7: 查找并准备 .ipk 文件
